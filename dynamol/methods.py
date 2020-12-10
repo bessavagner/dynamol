@@ -1,13 +1,31 @@
 class Integrator:
     def __init__(self, dt=1.0e-4):
-        self.dt = dt
-        self.halfdt = 0.5*dt
-        self.halfdt2 = self.halfdt*dt
+        self.__dt = dt
+        self.__halfdt = 0.5*dt
+        self.__halfdt2 = self.__halfdt*dt
+
+    @property
+    def dt(self, ):
+        return self.__dt
+
+    @property
+    def halfdt(self, ):
+        return self.__halfdt
+
+    @property
+    def halfdt2(self, ):
+        return self.__halfdt2
+
+    @dt.setter
+    def dt(self, dt):
+        self.__dt = dt
+        self.__halfdt = 0.5*dt
+        self.__halfdt2 = self.__halfdt*dt
 
 
 class VelocityVerlet(Integrator):
     def __init__(self, dt=1.0e-4):
-        super().__init__()
+        super().__init__(dt)
 
     def __update_position(self, state_vector, a):
         r, v = state_vector

@@ -38,7 +38,7 @@ class IdealGas(construct.SetOfParticles):
             self.V /= self.units.volume
         self.size = np.ones(self.dim)*self.V**(1/self.dim)
 
-        self.celllist = construct.CellList(self.N, self.size, L=cutoff)
+        self.cellist = construct.CellList(self.N, self.size, L=cutoff)
 
         self.initialize(mass, config_file)
 
@@ -64,7 +64,7 @@ class IdealGas(construct.SetOfParticles):
         if config_file is not None:
             pass
         else:
-            R, self.N, self.dim = self.celllist.square_lattice()
+            R, self.N, self.dim = self.cellist.square_lattice()
             V = self.static_system(mass)
             super().__init__(self.N, self.dim)
             self.positions = R
@@ -72,13 +72,20 @@ class IdealGas(construct.SetOfParticles):
 
     def update_list(self, ):
         r = np.array([r for r in self.positions])
-        self.celllist.make_list(r)
+        self.cellist.make_list(r)
 
     def compute_interactions(self, ):
         self.update_list()
         cum_forces = np.zeros((self.N, self.dim))
-        for loc in self.celllist.index_list():
-            neighbor = self.celllist.neighbors(loc)
+        for loc in self.cellist.index_list():
+            for i in np.sum(self.cellist.cells[loc].flatten()):
+                for j in self.cellist.neighbors(loc):
+                    if i != j:
+                        rij = self[j].r - self[i].r
+                        cum_forces[i] += self.interaction.force(rij)
+
+            '''neighbor = self.cellist.neighbors(loc)
+            line.append(neighbor)
             if len(neighbor) <= 1:
                 break
             R = np.array([p.r for p in self[neighbor]])
@@ -90,7 +97,7 @@ class IdealGas(construct.SetOfParticles):
             interactions = np.array([
                 self.interaction.force(r, neighbor) for r in relative_positions
             ]).reshape(len(neighbor), len(neighbor) - 1, self.dim)
-            cum_forces[neighbor] += np.sum(interactions, axis=1)
+            cum_forces[neighbor] += np.sum(interactions, axis=1)'''
 
         masses = np.array([p.m for p in self[:]])
         R = np.array([p.r for p in self[:]])
@@ -100,8 +107,8 @@ class IdealGas(construct.SetOfParticles):
         def accels():
             return np.divide(cum_forces, masses[:, None])
 
-        R, V, A = self.integration.single_step((R, V), A, accels)
-        for p, r, v, a in zip(self[:], R, V, A):
+        R, V, A_new = self.integration.single_step((R, V), A, accels)
+        for p, r, v, a in zip(self.particles, R, V, A_new):
             p.r, p.v, p.a = r, v, a
         self.check_reflections()
 
@@ -116,8 +123,6 @@ class IdealGas(construct.SetOfParticles):
         text += f"\tArmanezando dados a cada {file_ratio} passos."
         print(text)
         self.compute_interactions()  # start accelerations
-        mass = np.array([m for m in self.masses])
-        self.velocities = self.static_system(mass)
         self.store_variables(time=0, maxlines=n_files+1)
         self.save_positions(idx=0)
         time = 0.0
@@ -180,21 +185,14 @@ class IdealGas(construct.SetOfParticles):
 
     def potential_energy(self, ):
         U = 0
-        for loc in self.celllist.index_list():
-            neighbor = self.celllist.neighbors(loc)
-            R = np.array([p.r for p in self[neighbor]])
-            if len(neighbor) <= 1:
-                break
-            relative_positions = construct.compute_differences(
-                np.array(R)
-            )
-            U += np.sum(
-                np.array(
-                    [self.interaction.potential(
-                        np.linalg.norm(r)
-                    ) for r in relative_positions]
-                )
-            )
+        for loc in self.cellist.index_list():
+            for i in np.sum(self.cellist.cells[loc].flatten()):
+                for j in self.cellist.neighbors(loc):
+                    if i != j:
+                        rij = self[j].r - self[i].r
+                        U += self.interaction.potential(
+                            np.linalg.norm(rij)
+                        )
         return U
 
     def kinetic_energy(self, ):
@@ -208,6 +206,8 @@ class IdealGas(construct.SetOfParticles):
         for p in self.particles:
             K += p.m*p.v.dot(p.v)
         self.T = K/(self.dim*(self.N - 1))
+        if self.ajust_time_step():
+            self.integration.dt = self.time_step
         K *= 0.5
         return K
 
@@ -256,7 +256,7 @@ class IdealGas(construct.SetOfParticles):
 
     def ajust_time_step(self, silent=True):
         nice_dt = 8.0e-3/np.sqrt(self.T*self.units.temperature)
-        if self.time_step > nice_dt:
+        if self.time_step != nice_dt:
             self.time_step = nice_dt
             if not silent:
                 print(f"Espaçamento no tempo ajustado para {nice_dt}")
