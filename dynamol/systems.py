@@ -196,7 +196,7 @@ class IdealGas(construct.SetOfParticles):
 
     def kinetic_energy(self, ):
         """Calcula energia cinética e temperatura usando
-        o teorema da equipartição: K = 3kT/2, k = 1 (Boltzmann)
+        o teorema da equipartição: K = self.dim*k*T/2, k = 1 (Boltzmann)
 
         Returns:
             némero: valor da energia cinética
