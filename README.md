@@ -29,7 +29,7 @@ import dynamol as dm
 gas = dm.systems.IdealGas(N=216, temperature=4, atom='argon', compress=1.5, dim=2)
 ~~~
 
-A temperatura poderá ser ajustada para garantir a estaticidade do sistema (<img src="https://render.githubusercontent.com/render/math?math=\large \vec{V}_{cm} = 0">), assim como o fator de compressão, a fim de garantir que a distância inicial entre as partículas não sejam menor do que <img src="https://render.githubusercontent.com/render/math?math=\large 1"> unidade de comprimento. Confira o 'Initial distancing' no outuput do construtor, e prefira usar valores que fornecam Initial distancing' cima de 2.5. Para executar a simulação:
+A temperatura poderá ser ajustada para garantir a estaticidade do sistema (<img src="https://render.githubusercontent.com/render/math?math=\large \vec{V}_{cm} = 0">), assim como o fator de compressão, a fim de garantir que a distância inicial entre as partículas não sejam menor do que <img src="https://render.githubusercontent.com/render/math?math=\large 1"> unidade de comprimento. Confira o 'Espaçamento inicial' no outuput do construtor, e prefira usar valores que fornecam 'Espaçamento inicial' cima de 2.5. Para executar a simulação:
 
 ~~~python
 n_iteracoes = 10000

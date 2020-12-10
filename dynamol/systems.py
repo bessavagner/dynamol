@@ -46,9 +46,9 @@ class IdealGas(construct.SetOfParticles):
         self.integration = methods.VelocityVerlet(dt=dt)
 
         print("\tIdeal gas")
-        print(f"\t\t Number of particles: {self.N}")
+        print(f"\t\t Número de partículas: {self.N}")
         print(f"\t\t Volume: {self.V*self.units.volume:.2e} m³.")
-        print(f"\t\t Temperature: {self.T*self.units.temperature} K")
+        print(f"\t\t Temperatura: {self.T*self.units.temperature} K")
         dim1 = f"{self.size[0]:.2e} x {self.size[1]:.2e} "
         if dim == 3:
             dim1 += f"x {self.size[2]:.2e}"
@@ -56,9 +56,9 @@ class IdealGas(construct.SetOfParticles):
         dim2 = f"{self.size[0]*uL:.2e} x {self.size[1]*uL:.2e}"
         if dim == 3:
             dim2 += f" x {self.size[2]*uL:.2e}"
-        print(f"\t\t Dimenstion:\n\t\t  {dim1} uL³/uL², or\n\t\t {dim2} m³/m³")
-        print(f"\t\t Density: {density} kg/m³ or kg/m²")
-        print(f"\t\t Initial distancing: {(self.V/N)**(1/dim):.3f} uL")
+        print(f"\t\t Dimensões:\n\t\t  {dim1} uL³/uL², ou\n\t\t {dim2} m³/m²")
+        print(f"\t\t Densidade: {density} kg/m³ or kg/m²")
+        print(f"\t\t Espaçamento inicial: {(self.V/N)**(1/dim):.3f} uL")
 
     def initialize(self, mass, config_file=None):
         if config_file is not None:
@@ -112,8 +112,8 @@ class IdealGas(construct.SetOfParticles):
         file_ratio = int(np.ceil(n_intereations/n_files))
         while(len(str(n_files)) > zeros):
             zeros += 1
-        text = "Starting simulations..."
-        text += f"\tStoring data every {file_ratio} steps."
+        text = "Iniciando simulação..."
+        text += f"\tSArmanezando dados a cada {file_ratio} passos."
         print(text)
         self.compute_interactions()  # start accelerations
         self.store_variables(time=0, maxlines=n_files+1)
