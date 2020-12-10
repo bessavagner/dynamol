@@ -20,16 +20,16 @@ para instalar em modo de edição
 
 ## Uso básico
 
-A simulação tem como base um conjunto de <img src="https://render.githubusercontent.com/render/math?math=\large N"> partículas em uma caixa cúbica (3D) ou em um retângulo (2D), cujas dimensões são construídas com base no volume molar de um gás ideal a <img src="https://render.githubusercontent.com/render/math?math=\large 273.15">k e pressão de <img src="https://render.githubusercontent.com/render/math?math=\large 101325"> Pa ou <img src="https://render.githubusercontent.com/render/math?math=\large 1"> atm, e massa molar escolhida pelo usuário. Você pode ver uma lista de moléculas disponíveis na variável ```dynamol.base.atomic_mass```, que é um dicionário cujas chaves são diferentes elementos e moléculas. A configuração inicial é de uma rede retangular, cuja separação depende do valor de densitade imputado. Condira e implementação de ```dynamol.base.Lattice```.
+A simulação tem como base um conjunto de <img src="https://render.githubusercontent.com/render/math?math=\large N"> partículas em uma caixa cúbica (3D) ou em um retângulo (2D), cujas dimensões são construídas com base no volume molar de um gás ideal a <img src="https://render.githubusercontent.com/render/math?math=\large 273.15">k e pressão de <img src="https://render.githubusercontent.com/render/math?math=\large 101325"> Pa ou <img src="https://render.githubusercontent.com/render/math?math=\large 1"> atm, e massa molar escolhida pelo usuário. Você pode ver uma lista de moléculas disponíveis na variável ```dynamol.data.atomic_mass```, que é um dicionário cujas chaves são diferentes elementos e moléculas. A configuração inicial é de uma rede retangular, cuja separação depende do valor de densitade imputado. Condira e implementação de ```dynamol.construct.Lattice```.
 
 Primeiramente, construa um objeto de simulação. Por enquanto, apenas ```IdealGas``` está implementado:
 
 ~~~python
 import dynamol as dm
-gas = dm.system.IdealGas(N=216, temperature=4, atom='argon', compress=1.5)
+gas = dm.systems.IdealGas(N=216, temperature=4, atom='argon', compress=1.5, dim=2)
 ~~~
 
-A temperatura poderá ser ajustada para garantir a estaticidade do sistema (<img src="https://render.githubusercontent.com/render/math?math=\large \vec{V}_{cm} = 0">), assim como o fator de compressão, a fim de garantir que a distância inicial entre as partículas não sejam menor do que <img src="https://render.githubusercontent.com/render/math?math=\large 1"> unidade de comprimento. Confira o 'Initial distancing' no outuput do construtor, e prefira usar valores que fornecam torno de 2.5. Para executar a simulação:
+A temperatura poderá ser ajustada para garantir a estaticidade do sistema (<img src="https://render.githubusercontent.com/render/math?math=\large \vec{V}_{cm} = 0">), assim como o fator de compressão, a fim de garantir que a distância inicial entre as partículas não sejam menor do que <img src="https://render.githubusercontent.com/render/math?math=\large 1"> unidade de comprimento. Confira o 'Initial distancing' no outuput do construtor, e prefira usar valores que fornecam Initial distancing' cima de 2.5. Para executar a simulação:
 
 ~~~python
 n_iteracoes = 10000
