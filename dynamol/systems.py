@@ -76,6 +76,7 @@ class IdealGas(construct.SetOfParticles):
 
     def compute_interactions(self, ):
         self.update_list()
+        self.check_reflections()
         cum_forces = np.zeros((self.N, self.dim))
         for loc in self.celllist.index_list():
             neighbor = self.celllist.neighbors(loc)
@@ -103,7 +104,6 @@ class IdealGas(construct.SetOfParticles):
         R, V, A = self.integration.single_step((R, V), A, accels)
         for p, r, v, a in zip(self[:], R, V, A):
             p.r, p.v, p.a = r, v, a
-        self.check_reflections()
 
     def execute_simulation(self, n_intereations, start=0,
                            n_files=1000, zeros=4):
@@ -112,8 +112,8 @@ class IdealGas(construct.SetOfParticles):
         file_ratio = int(np.ceil(n_intereations/n_files))
         while(len(str(n_files)) > zeros):
             zeros += 1
-        text = "Iniciando simulação..."
-        text += f"\tSArmanezando dados a cada {file_ratio} passos."
+        text = "Iniciando simulação...\n"
+        text += f"\tArmanezando dados a cada {file_ratio} passos."
         print(text)
         self.compute_interactions()  # start accelerations
         self.store_variables(time=0, maxlines=n_files+1)
@@ -177,7 +177,6 @@ class IdealGas(construct.SetOfParticles):
 
     def potential_energy(self, ):
         U = 0
-        self.update_list()
         for loc in self.celllist.index_list():
             neighbor = self.celllist.neighbors(loc)
             R = np.array([p.r for p in self[neighbor]])
