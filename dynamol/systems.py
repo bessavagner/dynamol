@@ -75,8 +75,8 @@ class IdealGas(construct.SetOfParticles):
         self.celllist.make_list(r)
 
     def compute_interactions(self, ):
-        self.update_list()
         self.check_reflections()
+        self.update_list()
         cum_forces = np.zeros((self.N, self.dim))
         for loc in self.celllist.index_list():
             neighbor = self.celllist.neighbors(loc)
