@@ -256,6 +256,7 @@ class SystemOfUnits:
         self.space = space
         self.Avogadro = sc.Avogadro
         self.Boltzmann = sc.Boltzmann
+        self.kJmol = self.energy*self.Avogadro/1000
 
     @property  # decorador
     def volume(self, ):
@@ -290,6 +291,7 @@ class SystemOfUnits:
         self.mass = data.atomic_mass[atom]
         self.energy = data.dispersion_energy[atom]
         self.space = data.spacing[atom]
+        self.kJmol = self.energy*self.Avogadro/1000
         return self
 
     def __repr__(self):

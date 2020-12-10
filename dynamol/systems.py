@@ -78,8 +78,8 @@ class IdealGas(construct.SetOfParticles):
         self.update_list()
         cum_forces = np.zeros((self.N, self.dim))
         for loc in self.cellist.index_list():
-            for i in np.sum(self.cellist.cells[loc].flatten()):
-                for j in self.cellist.neighbors(loc):
+            for i in self.cellist.cells[tuple(loc)]:
+                for j in self.cellist.neighbors(tuple(loc)):
                     if i != j:
                         rij = self[i].r - self[j].r
                         cum_forces[i] += self.interaction.force(rij)
@@ -152,8 +152,8 @@ class IdealGas(construct.SetOfParticles):
 
     def store_variables(self, time, idx=0, maxlines=10000):
         file = self.vars_folder + r'\variables.h5'
-        U = self.potential_energy()/self.N
-        K = self.kinetic_energy()/self.N
+        U = self.potential_energy()/self.units.kJmol
+        K = self.kinetic_energy()/self.units.kJmol
         data = {
             'Mechanical Energy': K + U,
             'Potential Energy': U,
@@ -185,6 +185,7 @@ class IdealGas(construct.SetOfParticles):
 
     def potential_energy(self, ):
         U = 0
+        self.update_list()
         for loc in self.cellist.index_list():
             for i in np.sum(self.cellist.cells[loc].flatten()):
                 for j in self.cellist.neighbors(loc):
