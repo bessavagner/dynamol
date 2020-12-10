@@ -43,7 +43,7 @@ class IdealGas(construct.SetOfParticles):
         self.initialize(mass, config_file)
 
         self.interaction = forcelaws.LennardJones(cutoff=self.cutoff)
-        self.integration = methods.VelocityVerlet(dt=dt)
+        self.integration = methods.VelocityVerlet(dt=self.time_step)
 
         print("\tIdeal gas")
         print(f"\t\t Número de partículas: {self.N}")
@@ -75,7 +75,6 @@ class IdealGas(construct.SetOfParticles):
         self.celllist.make_list(r)
 
     def compute_interactions(self, ):
-        self.check_reflections()
         self.update_list()
         cum_forces = np.zeros((self.N, self.dim))
         for loc in self.celllist.index_list():
@@ -104,6 +103,7 @@ class IdealGas(construct.SetOfParticles):
         R, V, A = self.integration.single_step((R, V), A, accels)
         for p, r, v, a in zip(self[:], R, V, A):
             p.r, p.v, p.a = r, v, a
+        self.check_reflections()
 
     def execute_simulation(self, n_intereations, start=0,
                            n_files=1000, zeros=4):
@@ -116,16 +116,19 @@ class IdealGas(construct.SetOfParticles):
         text += f"\tArmanezando dados a cada {file_ratio} passos."
         print(text)
         self.compute_interactions()  # start accelerations
+        mass = np.array([m for m in self.masses])
+        self.velocities = self.static_system(mass)
         self.store_variables(time=0, maxlines=n_files+1)
         self.save_positions(idx=0)
-
+        time = 0.0
         for t in trange(n_intereations):
+            time += self.integration.dt
             self.compute_interactions()
             # self.check_reflections()
             if t % file_ratio == 0:
                 idx = int((t + 1)/file_ratio)
                 self.save_positions(idx=idx, zeros=zeros)
-                self.store_variables(time=(t + 1)*self.integration.dt,
+                self.store_variables(time=time,
                                      idx=(idx+1))
 
     def check_reflections(self, ):
@@ -204,7 +207,7 @@ class IdealGas(construct.SetOfParticles):
         K = 0
         for p in self.particles:
             K += p.m*p.v.dot(p.v)
-        self.T = K/(self.dim*self.N)
+        self.T = K/(self.dim*(self.N - 1))
         K *= 0.5
         return K
 
@@ -228,7 +231,7 @@ class IdealGas(construct.SetOfParticles):
         V -= Vcm/M
         for m, v in zip(mass, V):
             V2 += m*v.dot(v)
-        T = V2/(self.dim*self.N)
+        T = V2/(self.dim*(self.N - 1))
         k = np.sqrt(self.T/T)  # reescaling temperature
         self.T = T
         V *= k
@@ -236,10 +239,7 @@ class IdealGas(construct.SetOfParticles):
 
     def check_inputs(self, compress):
 
-        nice_dt = 1.0e-2/np.sqrt(self.T*self.units.temperature)
-        if self.time_step > nice_dt:
-            self.time_step = nice_dt
-            print(f"Espaçamento no tempo ajustado para {nice_dt}")
+        self.ajust_time_step(silent=False)
 
         # Cálculo e ajuste da densidade
         N = self.N
@@ -253,3 +253,13 @@ class IdealGas(construct.SetOfParticles):
             density = compress**self.dim*m/V  # kg/m³
 
         return density
+
+    def ajust_time_step(self, silent=True):
+        nice_dt = 8.0e-3/np.sqrt(self.T*self.units.temperature)
+        if self.time_step > nice_dt:
+            self.time_step = nice_dt
+            if not silent:
+                print(f"Espaçamento no tempo ajustado para {nice_dt}")
+            return True
+        else:
+            return False
