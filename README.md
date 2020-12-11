@@ -26,7 +26,7 @@ Primeiramente, construa um objeto de simulação. Por enquanto, apenas ```IdealG
 
 ~~~python
 import dynamol as dm
-gas = dm.systems.IdealGas(N=216, temperature=4, atom='argon', compress=1.5, dim=2)
+gas = dm.systems.IdealGas(N=216, temperature=4, atom='argon', compress=1.0, dim=2)
 ~~~
 
 A temperatura poderá ser ajustada para garantir a estaticidade do sistema (<img src="https://render.githubusercontent.com/render/math?math=\large \vec{V}_{cm} = 0">), assim como o fator de compressão, a fim de garantir que a distância inicial entre as partículas não sejam menor do que <img src="https://render.githubusercontent.com/render/math?math=\large 1"> unidade de comprimento, e o número de partículas deve ser uma potência da dimenão. Caso forneca um número de partículas sem raiz inteira, o programa ajusta automaticamente para o próximo número com raiz inteira. Confira o 'Espaçamento inicial' no outuput do construtor, e prefira usar valores de ```compress``` que fornecam 'Espaçamento inicial' abaixo de 1.5 (ou da escolha para o raio de corte do potencial). Para executar a simulação:

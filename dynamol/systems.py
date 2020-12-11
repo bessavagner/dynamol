@@ -95,27 +95,6 @@ class IdealGas(construct.SetOfParticles):
         return np.divide(cum_forces, masses[:, None])
 
     def compute_interactions(self, time):
-        '''for i, pi in enumerate(self[:]):
-            for j, pj in enumerate(self[i+1:], start=i+1):
-                rij = self[i].r - self[j].r
-                fij = self.interaction.force(rij)
-                cum_forces[i] += fij
-                cum_forces[j] += -fij'''
-
-        '''neighbor = self.cellist.neighbors(loc)
-        line.append(neighbor)
-        if len(neighbor) <= 1:
-            break
-        R = np.array([p.r for p in self[neighbor]])
-        V = np.array([p.v for p in self[neighbor]])
-        A = np.array([p.a for p in self[neighbor]])
-        relative_positions = construct.compute_differences(
-            np.array(R)
-        )
-        interactions = np.array([
-            self.interaction.force(r, neighbor) for r in relative_positions
-        ]).reshape(len(neighbor), len(neighbor) - 1, self.dim)
-        cum_forces[neighbor] += np.sum(interactions, axis=1)'''
 
         R = np.array([p.r for p in self[:]])
         V = np.array([p.v for p in self[:]])

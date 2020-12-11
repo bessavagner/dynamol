@@ -40,6 +40,17 @@ class VelocityVerlet(Integrator):
 
     def single_step(self, r, v, a_old,
                     f: callable, *args, **kwargs):
+        """Passo único no tempo
+
+        Args:
+            r (número/np.ndarray): posição(s)
+            v (número/np.ndarray): velocidade(s)
+            a_old (número/np.ndarray): aceleração(s)
+            f (callable): cálculo das acelerações. Deve ser
+                função da posição r: f(r, *args, **kwargs)
+        Returns:
+            vetor de estado e aceleração: tuple
+        """
         r = self.__update_position(r, v, a_old)
         a = f(r, *args, **kwargs)
         v = self.__update_velocity(v, a, a_old)
