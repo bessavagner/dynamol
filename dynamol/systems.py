@@ -74,25 +74,33 @@ class IdealGas(construct.SetOfParticles):
             self.positions = R
             self.velocities = V
 
-    def update_list(self, ):
-        r = np.array([r for r in self.positions])
+    def update_list(self, r=None):
+        if r is None:
+            r = np.array([r for r in self.positions])
+        else:
+            self.positions = r
         self.cellist.make_list(r)
 
-    def compute_interactions(self, ):
-        self.update_list()
+    def compute_accels(self, r):
+        self.update_list(r)
         cum_forces = np.zeros((self.N, self.dim))
-        '''for i, pi in enumerate(self[:]):
-            for j, pj in enumerate(self[i+1:], start=i+1):
-                rij = self[i].r - self[j].r
-                fij = self.interaction.force(rij)
-                cum_forces[i] += fij
-                cum_forces[j] += -fij'''
         for loc in self.cellist.index_list():
             for i in self.cellist.cells[tuple(loc)]:
                 for j in self.cellist.neighbors(tuple(loc)):
                     if i != j:
                         rij = self[i].r - self[j].r
                         cum_forces[i] += self.interaction.force(rij)
+
+        masses = np.array([p.m for p in self[:]])
+        return np.divide(cum_forces, masses[:, None])
+
+    def compute_interactions(self, time):
+        '''for i, pi in enumerate(self[:]):
+            for j, pj in enumerate(self[i+1:], start=i+1):
+                rij = self[i].r - self[j].r
+                fij = self.interaction.force(rij)
+                cum_forces[i] += fij
+                cum_forces[j] += -fij'''
 
         '''neighbor = self.cellist.neighbors(loc)
         line.append(neighbor)
@@ -109,18 +117,16 @@ class IdealGas(construct.SetOfParticles):
         ]).reshape(len(neighbor), len(neighbor) - 1, self.dim)
         cum_forces[neighbor] += np.sum(interactions, axis=1)'''
 
-        masses = np.array([p.m for p in self[:]])
         R = np.array([p.r for p in self[:]])
         V = np.array([p.v for p in self[:]])
         A = np.array([p.a for p in self[:]])
 
-        def accels():
-            return np.divide(cum_forces, masses[:, None])
+        accels = self.compute_accels
 
         R, V, A = self.integration.single_step(R, V, A, accels)
         for p, r, v, a in zip(self.particles, R, V, A):
             p.r, p.v, p.a = r, v, a
-        self.check_reflections()
+        self.check_reflections(time)
 
     def execute_simulation(self, n_intereations, start=0,
                            n_files=1000, zeros=4):
@@ -132,32 +138,33 @@ class IdealGas(construct.SetOfParticles):
         text = "Iniciando simulação...\n"
         text += f"\tArmanezando dados a cada {file_ratio} passos."
         print(text)
-        self.compute_interactions()  # start accelerations
+        self.compute_interactions(self.time_step)  # start accelerations
         self.store_variables(time=0, maxlines=n_files+1)
         self.save_positions(idx=0)
         time = 0.0
         for t in trange(n_intereations):
             time += self.integration.dt
-            self.compute_interactions()
+            self.compute_interactions(time)
             if t % file_ratio == 0:
                 idx = int((t + 1)/file_ratio)
                 self.save_positions(idx=idx, zeros=zeros)
                 self.store_variables(time=time,
                                      idx=(idx+1))
 
-    def check_reflections(self, ):
-        self.pressure = 0.0
+    def check_reflections(self, time):
+        pressure = 0.0
         for p in self[:]:
             for i, (u, v, l) in enumerate(zip(p.r, p.v, self.size)):
-                if u <= 0.0:
+                if u < 0.0:
                     p.v[i] = -p.v[i]
                     p.r[i] = 0.0
-                    self.pressure += l*p.m*abs(p.v[i])/self.time_step
-                elif u >= l:
+                    pressure += l*p.m*abs(p.v[i])/self.time_step
+                elif u > l:
                     p.v[i] = -p.v[i]
                     p.r[i] = l
-                    self.pressure += l*p.m*abs(p.v[i])/self.time_step
-        self.pressure /= 3*self.V
+                    pressure += l*p.m*abs(p.v[i])/self.time_step
+        pressure /= 3*self.V
+        self.pressure += pressure
 
     def store_variables(self, time, idx=0, maxlines=10000):
         file = self.vars_folder + r'\variables.h5'
@@ -167,7 +174,7 @@ class IdealGas(construct.SetOfParticles):
             'Mechanical Energy': K + U,
             'Potential Energy': U,
             'Kinetic Energy': K,
-            'Pressure': self.pressure*self.units.pressure/1.0e5,
+            'Average Pressure': self.pressure*self.units.pressure/1.0e5,
             'Temperature': self.T*self.units.temperature,
         }
         if idx == 0:
