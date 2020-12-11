@@ -32,7 +32,7 @@ class LennardJones:
             print(idx)
             import sys
             sys.exit()
-        if r <= self.cutoff:
+        if r < self.cutoff:
             rm1 = 1.0/r
             rm6 = rm1**6
             rm7 = rm1*rm6
@@ -54,7 +54,7 @@ class LennardJones:
             print(idx)
             import sys
             sys.exit()
-        if r <= self.cutoff:
+        if r < self.cutoff:
             rm1 = 1.0/r
             rm6 = rm1**6
             return 4.0*rm6*(rm6 - 1.0) - self.F_cutoff*(r - self.cutoff)\
@@ -87,6 +87,6 @@ class LennardJones:
         Returns:
             np.array: força
         """
-        rm1 = 1/r
+        rm1 = 1.0/r
         rm6 = rm1**6
         return 4.0*rm6*(rm6 - 1.0)
